@@ -10,7 +10,7 @@ from skopt.learning import GaussianProcessRegressor
 from skopt.learning.gaussian_process.kernels import RBF
 from gp_functions import fit_gp_model_1d, plot_gp_results_1d
 
-
+#shiqi�±༭
 # Configuration for the simulation
 conf_file_name = "pandaconfig.json"  # Configuration file for the robot
 cur_dir = os.path.dirname(os.path.abspath(__file__))
