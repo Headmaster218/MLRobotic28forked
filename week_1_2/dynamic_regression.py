@@ -61,9 +61,9 @@ def main():
             qdd_mes = None
     
             # Measure current state and add noise
-            q_mes = sim.GetMotorAngles(0) + np.random.normal(0, noise_cov, size=sim.GetMotorAngles(0).shape)
-            qd_mes = sim.GetMotorVelocities(0) + np.random.normal(0, noise_cov, size=sim.GetMotorVelocities(0).shape)
-            qdd_mes = sim.ComputeMotorAccelerationTMinusOne(0) + np.random.normal(0, noise_cov, size=sim.ComputeMotorAccelerationTMinusOne(0).shape)
+            q_mes = sim.GetMotorAngles(0)# + np.random.normal(0, noise_cov, size=sim.GetMotorAngles(0).shape)
+            qd_mes = sim.GetMotorVelocities(0)# + np.random.normal(0, noise_cov, size=sim.GetMotorVelocities(0).shape)
+            qdd_mes = sim.ComputeMotorAccelerationTMinusOne(0)# + np.random.normal(0, noise_cov, size=sim.ComputeMotorAccelerationTMinusOne(0).shape)
     
             # Compute sinusoidal reference trajectory
             q_d, qd_d = ref.get_values(current_time)  # Desired position and velocity
