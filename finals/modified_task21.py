@@ -19,11 +19,18 @@ q_mes_all = torch.tensor(data['q_mes_all'], dtype=torch.float32)  # Joint positi
 input_data = torch.cat((time.expand(-1, goal_positions.size(1)), goal_positions), dim=1)  # Shape: [num_samples, 4]
 output_data = q_mes_all  # Target: joint positions for each time step, Shape: [num_samples, 7]
 
-# Create a dataset and split it into training and testing sets
+# Define your dataset
 dataset = TensorDataset(input_data, output_data)
+
+# Set sizes for training and testing
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
-train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
+# Split the dataset without shuffling
+train_dataset = TensorDataset(*dataset[:train_size])
+test_dataset = TensorDataset(*dataset[train_size:])
+
+# Create data loaders for training and testing sets
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
@@ -116,5 +123,5 @@ train_model(model, train_loader, criterion, optimizer, epochs=50)
 test_model(model, test_loader, criterion)
 
 # Plot trajectories for training and testing sets with sampling
-plot_joint_trajectories(model, train_loader, title="Training Set Joint Trajectories")
-plot_joint_trajectories(model, test_loader, title="Testing Set Joint Trajectories")
+plot_joint_trajectories(model, train_loader, title="Training Set Joint Trajectories", sample_rate=30)
+plot_joint_trajectories(model, test_loader, title="Testing Set Joint Trajectories", sample_rate=1)
