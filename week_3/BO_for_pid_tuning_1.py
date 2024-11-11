@@ -1,3 +1,4 @@
+
 from skopt import gp_minimize
 from skopt.space import Real
 import numpy as np
@@ -9,6 +10,7 @@ from skopt.space import Real
 from skopt.learning import GaussianProcessRegressor
 from skopt.learning.gaussian_process.kernels import RBF
 from gp_functions import fit_gp_model_1d, plot_gp_results_1d
+
 
 # Configuration for the simulation
 conf_file_name = "pandaconfig.json"  # Configuration file for the robot
@@ -107,28 +109,26 @@ def simulate_with_given_pid_values(sim_, kp, kd, episode_duration=10):
     
     return tracking_error
 
-
-
+cost_function_results = []
 # Objective function for optimization
 def objective(params):
-    # Extract Kp and Kd values from the parameter vector
     kp = np.array(params[:7])  # First 7 elements correspond to kp
     kd = np.array(params[7:])  # Last 7 elements correspond to kd
-    episode_duration = 10  # Define the episode duration
-
-    # Call the simulation with given Kp and Kd values
-    tracking_error = simulate_with_given_pid_values(sim, kp, kd, episode_duration)
-
-    # Collect data for the first kp and kd for later analysis
-    kp0_values.append(kp[0])
+    tracking_error = simulate_with_given_pid_values(sim, kp, kd, episode_duration=10)
+    cost_function_results.append(tracking_error)
+    kp0_values.append(kp[0])  # 确保将kp转换为列表，以便存储
     kd0_values.append(kd[0])
     tracking_errors.append(tracking_error)
-
+    # TODO Call the simulation with given kp and kd values
+    
+    
     return tracking_error
-
+    # TODO Collect data for the first kp and kd  
+    
 
 
 def main():
+    global cost_function_results
     # Define the search space for Kp and Kd
    # Define the search space as before
     space = [
@@ -138,7 +138,7 @@ def main():
     ]
 
     rbf_kernel = RBF(
-    length_scale=1.0,            # Initial length scale
+    length_scale=100,            # Initial length scale
     length_scale_bounds=(1e-2, 1e2)  # Bounds for length scale
     )
 
@@ -147,34 +147,44 @@ def main():
     normalize_y=True,
     n_restarts_optimizer=10  # Optional for better hyperparameter optimization
     )
-
     # Perform Bayesian optimization
     result = gp_minimize(
     objective,
     space,
-    n_calls=10,
+    n_calls=50,
     base_estimator=gp,  # Use the custom Gaussian Process Regressor
-    acq_func='EI',      # TODO change this LCB': Lower Confidence Bound 'EI': Expected Improvement 'PI': Probability of Improvement
+    acq_func='LCB',      # TODO change this LCB': Lower Confidence Bound 'EI': Expected Improvement 'PI': Probability of Improvement
     random_state=42)
     
     # Extract the optimal values
     best_kp = result.x[:7]  # Optimal kp vector
     best_kd = result.x[7:]  # Optimal kd vector
+    
+    final_tracking_error = cost_function_results[-1]
+    print(f"Final tracking error: {final_tracking_error}")
+    print(f"Optimal Kp: {best_kp}, Optimal Kd: {best_kd}")
 
+    # 绘制收敛曲线
+    plt.figure()
+    plt.plot(cost_function_results, label="Cost function (tracking error)")
+    plt.xlabel('Iteration')
+    plt.ylabel('Tracking error')
+    plt.title('Convergence behavior of optimization')
+    plt.legend()
+    plt.show()
     # Prepare data
     kp0_values_array = np.array(kp0_values).reshape(-1, 1)
     kd0_values_array = np.array(kd0_values).reshape(-1, 1)
     tracking_errors_array = np.array(tracking_errors)
 
     # Fit GP models
-    gp_kp0 = fit_gp_model_1d(kp0_values_array, tracking_errors_array)
-    gp_kd0 = fit_gp_model_1d(kd0_values_array, tracking_errors_array)
-
+    gp_kp0 = fit_gp_model_1d(kp0_values_array, tracking_errors_array,length_scale=1.0)
+    gp_kd0 = fit_gp_model_1d(kd0_values_array, tracking_errors_array,length_scale=1.0)
     # Plot the results
     plot_gp_results_1d(kp0_values_array, kd0_values_array, tracking_errors_array, gp_kp0, gp_kd0)
+    plt.show()
 
-
-    print(f"Optimal Kp: {best_kp}, Optimal Kd: {best_kd}")
+  
 
 if __name__ == "__main__":
     main()

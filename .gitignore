@@ -1,3 +1,31 @@
 
 
 .vs/
+data/ 
+
+
+
+.vs/
+
+
+week_1_2/simulation_and_control/
+
+*/.DS_Store
+
+.DS_Store
+
+*/configs/
+
+*/models/
+
+*/simulation_and_control/
+
+*/__pychake__/
+
+*.pyc
+
+data/MNIST/raw/
+
+*.pt
+
+*.joblib
